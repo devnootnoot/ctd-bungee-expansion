@@ -1,6 +1,5 @@
-package com.extendedclip.papi.bungeeexpansion;
+package com.extendedclip.papi.ctdexpansion;
 
-import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
@@ -14,7 +13,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -23,12 +21,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 
-public final class BungeeExpansion extends PlaceholderExpansion implements PluginMessageListener, Taskable, Configurable {
+public final class CTDExpansion extends PlaceholderExpansion implements PluginMessageListener, Taskable, Configurable {
 
     private static final String MESSAGE_CHANNEL = "BungeeCord";
-    private static final String SERVERS_CHANNEL = "GetServers";
     private static final String CONFIG_INTERVAL = "check_interval";
     private static final String PING_CHANNEL = "Ping";
     private static final String QUEUED_SERVER_CHANNEL = "QueuedServer";
@@ -56,7 +52,7 @@ public final class BungeeExpansion extends PlaceholderExpansion implements Plugi
 
     @Override
     public String getIdentifier() {
-        return "bungeenoot";
+        return "ctd";
     }
 
     @Override
@@ -66,7 +62,7 @@ public final class BungeeExpansion extends PlaceholderExpansion implements Plugi
 
     @Override
     public String getVersion() {
-        return "2.3";
+        return "1.0";
     }
 
     @Override
@@ -83,9 +79,9 @@ public final class BungeeExpansion extends PlaceholderExpansion implements Plugi
             case "queued_server":
                 return String.valueOf(queuedServers.getOrDefault(player.getUniqueId(), "N/A"));
             case "queued_position":
-                return String.valueOf(queuedPosition.getOrDefault(player.getUniqueId(), -1));
+                return String.valueOf(queuedPosition.getOrDefault(player.getUniqueId(), 0));
             case "queued_max_position":
-                return String.valueOf(queuedMaxPosition.getOrDefault(player.getUniqueId(), -1));
+                return String.valueOf(queuedMaxPosition.getOrDefault(player.getUniqueId(), 0));
             case "queued_paused":
                 return String.valueOf(queuedPause.getOrDefault(player.getUniqueId(), false));
         }
@@ -106,7 +102,7 @@ public final class BungeeExpansion extends PlaceholderExpansion implements Plugi
             }
 
 
-        }, 20L * 2L, 20L);
+        }, 20L * 2L, 20L * getLong(CONFIG_INTERVAL, 30));
 
 
         final BukkitTask prev = cached.getAndSet(task);
@@ -117,8 +113,6 @@ public final class BungeeExpansion extends PlaceholderExpansion implements Plugi
             Bukkit.getMessenger().registerIncomingPluginChannel(getPlaceholderAPI(), MESSAGE_CHANNEL, this);
         }
     }
-
-
 
     @Override
     public void stop() {
@@ -132,7 +126,6 @@ public final class BungeeExpansion extends PlaceholderExpansion implements Plugi
         Bukkit.getMessenger().unregisterOutgoingPluginChannel(getPlaceholderAPI(), MESSAGE_CHANNEL);
         Bukkit.getMessenger().unregisterIncomingPluginChannel(getPlaceholderAPI(), MESSAGE_CHANNEL, this);
     }
-
 
     @Override
     public void onPluginMessageReceived(final String channel, final Player player, final byte[] message) {
